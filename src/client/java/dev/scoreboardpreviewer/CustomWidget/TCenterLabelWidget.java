@@ -1,19 +1,13 @@
 package dev.scoreboardpreviewer.CustomWidget;
 
-import io.github.thecsdev.tcdcommons.api.client.gui.TElement;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.Text;
+import net.minecraft.text.MutableText;
 
-public class TCenterLabelWidget extends TElement {
-    private final Text labelText;
-    private final float scale;
-
-    public TCenterLabelWidget(int x, int y, int width, int height, Text text, float scale) {
-        super(x, y, width, height);
-        this.labelText = text;
-        this.scale = scale;
+public class TCenterLabelWidget extends TLabelWidget {
+    public TCenterLabelWidget(int x, int y, int width, int height, MutableText text) {
+        super(x, y, width, height, text);
     }
 
     @Override

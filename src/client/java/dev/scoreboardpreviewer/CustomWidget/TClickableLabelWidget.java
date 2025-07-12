@@ -1,11 +1,11 @@
 package dev.scoreboardpreviewer.CustomWidget;
 
-import net.minecraft.text.Text;
+import net.minecraft.text.MutableText;
 
 public class TClickableLabelWidget extends TLabelWidget {
     private Runnable onClickCallBack = null;
 
-    public TClickableLabelWidget(int x, int y, int width, int height, Text text) {
+    public TClickableLabelWidget(int x, int y, int width, int height, MutableText text) {
         super(x, y, width, height, text);
     }
 
@@ -25,6 +25,6 @@ public class TClickableLabelWidget extends TLabelWidget {
             onClick();
             return true;
         }
-        return false;
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 }

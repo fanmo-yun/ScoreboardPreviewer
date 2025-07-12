@@ -1,7 +1,8 @@
 package dev.scoreboardpreviewer.BoardScreen;
 
 import dev.scoreboardpreviewer.CustomWidget.TCenterLabelWidget;
-import dev.scoreboardpreviewer.CustomWidget.TLabelWidget;
+import dev.scoreboardpreviewer.CustomWidget.TClickableLabelWidget;
+import dev.scoreboardpreviewer.CustomWidget.TPanelWidget;
 import dev.scoreboardpreviewer.ScoreSource.ScoreboardData;
 import dev.scoreboardpreviewer.model.ObjectiveData;
 import dev.scoreboardpreviewer.utils.TextHandler;
@@ -11,6 +12,8 @@ import io.github.thecsdev.tcdcommons.api.client.gui.util.Direction2D;
 import io.github.thecsdev.tcdcommons.api.client.gui.widget.TButtonWidget;
 import io.github.thecsdev.tcdcommons.api.client.gui.widget.TScrollBarWidget;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.sound.PositionedSoundInstance;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -30,6 +33,7 @@ public class BoardScreen extends TScreen {
     private static final int CLOSE_SIZE = 12;
     private static final int PANEL_START_POS = 30;
     private static final int PANEL_TOP_OFFSET = 25;
+    private TClickableLabelWidget currentSelectedLabel = null;
 
     public BoardScreen(String title) {
         super(Text.literal(title));
@@ -63,7 +67,10 @@ public class BoardScreen extends TScreen {
         int drawX = (getTpeWidth() / 2) - (textWidth / 2);
         int drawY = (getTpeHeight() / 2) - (textHeight / 2);
 
-        addTChild(new TCenterLabelWidget(drawX, drawY, textWidth, textHeight, noDataMsg, TextHandler.SCALE_1o5f));
+        TCenterLabelWidget noMsgLabel = new TCenterLabelWidget(drawX, drawY, textWidth, textHeight, noDataMsg);
+        noMsgLabel.setScale(TextHandler.SCALE_1o5f);
+
+        addTChild(noMsgLabel);
     }
 
     private void createCloseButton() {
@@ -77,27 +84,6 @@ public class BoardScreen extends TScreen {
         ));
     }
 
-    private void putObjectiveData(TPanelElement panelElement) {
-        List<ObjectiveData> objectivesData = ScoreboardData.getObjectives();
-        int labelHeight = 12;
-        int labelSpacing = 10;
-
-        for (int i = 0; i < objectivesData.size(); i++) {
-            ObjectiveData obj = objectivesData.get(i);
-
-            MutableText labelText = Text.literal("")
-                    .append(Text.literal(obj.objectiveDisplayName + "("))
-                    .append(Text.literal(obj.objectiveName).formatted(Formatting.GREEN))
-                    .append(Text.literal(")"));
-
-            int y = i * (labelHeight + labelSpacing);
-
-            TLabelWidget tLabelWidget = new TLabelWidget(0, y, TextHandler.getTextWidth(labelText, TextHandler.SCALE_1f), labelHeight, labelText);
-
-            panelElement.addTChild(tLabelWidget);
-        }
-    }
-
     private void createPanelSection(int panelY) {
         int totalAvailableWidth = this.width - 2 * PANEL_START_POS;
 
@@ -109,11 +95,12 @@ public class BoardScreen extends TScreen {
         int listPanelX = PANEL_START_POS;
         int boardPanelX = listPanelX + scoreListMenuPanelWidth + spacingBetweenPanels;
 
-        TPanelElement scoreListMenuPanel = new TPanelElement(
+        TPanelElement scoreListMenuPanel = new TPanelWidget(
                 listPanelX, panelY,
                 scoreListMenuPanelWidth, PANEL_HEIGHT
         );
         scoreListMenuPanel.setScrollFlags(TPanelElement.SCROLL_BOTH);
+        scoreListMenuPanel.setScrollPadding(0);
 
         TScrollBarWidget listMenuHorizontalScrollBar = new TScrollBarWidget(
                 scoreListMenuPanel.getTpeX(),
@@ -133,11 +120,12 @@ public class BoardScreen extends TScreen {
         );
         listMenuVerticalScrollBar.setSliderDirection(Direction2D.DOWN);
 
-        TPanelElement scoreBoardPanel = new TPanelElement(
+        TPanelWidget scoreBoardPanel = new TPanelWidget(
                 boardPanelX, panelY,
                 scoreBoardPanelWidth, PANEL_HEIGHT
         );
-        scoreBoardPanel.setScrollFlags(2);
+        scoreBoardPanel.setScrollFlags(TPanelWidget.SCROLL_VERTICAL);
+        scoreBoardPanel.setScrollPadding(0);
 
         TScrollBarWidget boardPanelScrollBar = new TScrollBarWidget(
                 scoreBoardPanel.getTpeEndX(),
@@ -154,6 +142,47 @@ public class BoardScreen extends TScreen {
         addTChild(listMenuVerticalScrollBar);
         addTChild(scoreBoardPanel);
         addTChild(boardPanelScrollBar);
+    }
+
+    private void changeLabelColorAndListScore(TClickableLabelWidget label) {
+        if (currentSelectedLabel != null && currentSelectedLabel != label) {
+            MutableText oldText = currentSelectedLabel.getLabelText().copy()
+                    .setStyle(currentSelectedLabel.getLabelText().getStyle().withColor(Formatting.WHITE));
+            currentSelectedLabel.setLabelText(oldText);
+        }
+
+        MutableText newText = label.getLabelText().copy()
+                .setStyle(label.getLabelText().getStyle().withColor(Formatting.YELLOW));
+        label.setLabelText(newText);
+
+        currentSelectedLabel = label;
+
+        if (currentSelectedLabel != label) {
+
+        }
+
+        MinecraftClient.getInstance().getSoundManager().play(
+                PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0f, 1.0f)
+        );
+    }
+
+    private void putObjectiveData(TPanelElement panelElement) {
+        List<ObjectiveData> objectivesData = ScoreboardData.getObjectives();
+        int labelHeight = TextHandler.getTextHeight(TextHandler.SCALE_1f) + 10;
+
+        for (int i = 0; i < objectivesData.size(); i++) {
+            ObjectiveData obj = objectivesData.get(i);
+
+            MutableText labelText = Text.literal(obj.objectiveDisplayName + "(" + obj.objectiveName + ")");
+
+            int y = i * labelHeight;
+
+            TClickableLabelWidget tLabelWidget = new TClickableLabelWidget(0, y, TextHandler.getTextWidth(labelText, TextHandler.SCALE_1f) + 4, labelHeight, labelText);
+            tLabelWidget.setOnClick(() -> changeLabelColorAndListScore(tLabelWidget));
+            tLabelWidget.setScale(TextHandler.SCALE_1f);
+
+            panelElement.addTChild(tLabelWidget);
+        }
     }
 
     private void layoutComponents() {
@@ -173,6 +202,7 @@ public class BoardScreen extends TScreen {
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
             exitAndClose();
+            return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
