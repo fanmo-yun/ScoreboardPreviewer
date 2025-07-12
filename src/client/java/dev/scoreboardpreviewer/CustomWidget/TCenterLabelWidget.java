@@ -13,8 +13,15 @@ public class TCenterLabelWidget extends TLabelWidget {
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
+
+        int textWidth = (int)(textRenderer.getWidth(this.getLabelText().getString()) * scale);
+        int textHeight = (int)(textRenderer.fontHeight * scale);
+
+        int centerX = getTpeX() + (getTpeWidth() - textWidth) / 2;
+        int centerY = getTpeY() + (getTpeHeight() - textHeight) / 2;
+
         matrices.push();
-        matrices.translate(getTpeX(), getTpeY(), 0);
+        matrices.translate(centerX, centerY, 0);
         matrices.scale(scale, scale, 1.0f);
         textRenderer.drawWithShadow(matrices, labelText, 0, 0, 0xFFFFFF);
         matrices.pop();
