@@ -11,7 +11,7 @@
 		"homepage": "https://github.com/fanmo-yun",
 		"sources": "https://github.com/fanmo-yun/ScoreboardPreviewer"
 	},
-	"license": "CC0-1.0",
+	"license": "",
 	"icon": "assets/scoreboardpreviewer/icon.png",
 	"environment": "*",
 	"entrypoints": {

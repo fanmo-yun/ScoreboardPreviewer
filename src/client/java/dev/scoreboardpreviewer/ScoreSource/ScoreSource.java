@@ -17,7 +17,7 @@ public class ScoreSource {
     public static final Logger LOGGER = LoggerFactory.getLogger(ScoreSource.class);
 
     public static void register() {
-        System.out.println("Registering ScoreSource");
+        LOGGER.info("Registering ScoreSource");
         ClientPlayNetworking.registerGlobalReceiver(new Identifier(ScoreboardPreviewer.MOD_ID, "sync_scoreboard"),
                 (client, handler, buf, responseSender) -> {
                     String resp = buf.readString();

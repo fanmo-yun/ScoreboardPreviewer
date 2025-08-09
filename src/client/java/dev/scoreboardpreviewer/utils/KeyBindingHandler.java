@@ -14,10 +14,10 @@ import org.slf4j.LoggerFactory;
 
 public class KeyBindingHandler {
     private static KeyBinding openStatsKey;
-    public static final Logger LOGGER = LoggerFactory.getLogger(KeyBindingHandler.class);
+    public static final Logger LOGGER = LoggerFactory.getLogger(ScoreboardPreviewer.MOD_ID);
 
     private static void requestScoreboardData() {
-        LOGGER.info("requestScoreboardData");
+        LOGGER.info("Request ScoreboardData");
         ClientPlayNetworking.send(
                 new Identifier(ScoreboardPreviewer.MOD_ID, "request_scoreboard"),
                 PacketByteBufs.create()
@@ -25,6 +25,7 @@ public class KeyBindingHandler {
     }
 
     public static void registerOpenStatsKey() {
+        LOGGER.info("Registering Open Stats Key");
         openStatsKey = new KeyBinding(
                 "key." + ScoreboardPreviewer.MOD_ID + ".open_board",
                 InputUtil.Type.KEYSYM,

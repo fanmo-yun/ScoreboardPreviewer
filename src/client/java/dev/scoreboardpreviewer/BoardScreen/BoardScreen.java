@@ -1,9 +1,10 @@
 package dev.scoreboardpreviewer.BoardScreen;
 
-import dev.scoreboardpreviewer.CustomWidget.TCenterLabelWidget;
-import dev.scoreboardpreviewer.CustomWidget.TClickableLabelWidget;
+import dev.scoreboardpreviewer.CustomWidget.TLabelWidget;
 import dev.scoreboardpreviewer.CustomWidget.TPanelWidget;
 import dev.scoreboardpreviewer.ScoreSource.ScoreboardData;
+import dev.scoreboardpreviewer.ScoreboardPreviewer;
+import dev.scoreboardpreviewer.ScoreboardPreviewerClient;
 import dev.scoreboardpreviewer.model.ObjectiveData;
 import dev.scoreboardpreviewer.model.PlayerScore;
 import dev.scoreboardpreviewer.utils.TextHandler;
@@ -24,7 +25,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 public class BoardScreen extends TScreen {
-    public static final Logger LOGGER = LoggerFactory.getLogger(BoardScreen.class);
+    public static final Logger LOGGER = LoggerFactory.getLogger(ScoreboardPreviewer.MOD_ID);
 
     private static final int CONTENT_HEIGHT = 230;
     private static final int PANEL_HEIGHT = 180;
@@ -35,7 +36,7 @@ public class BoardScreen extends TScreen {
     private static final int PANEL_TOP_OFFSET = 25;
     private static final int LABEL_HEIGHT = 20;
     private List<ObjectiveData> objectivesData = ScoreboardData.getObjectives();
-    private TClickableLabelWidget currentSelectedLabel = null;
+    private TLabelWidget currentSelectedLabel = null;
 
     public BoardScreen(String title) {
         super(Text.literal(title));
@@ -43,7 +44,16 @@ public class BoardScreen extends TScreen {
 
     @Override
     protected void init() {
+        LOGGER.info("Score Board Opened");
         layoutComponents();
+    }
+
+    private void exitAndClose() {
+        LOGGER.info("Score Board Closed");
+        if (!ScoreboardData.isEmpty()) {
+            ScoreboardData.clear();
+        }
+        close();
     }
 
     @Override
@@ -52,14 +62,6 @@ public class BoardScreen extends TScreen {
         objectivesData = ScoreboardData.getObjectives();
         currentSelectedLabel = null;
         layoutComponents();
-    }
-
-    private void exitAndClose() {
-        LOGGER.info("{} just close", BoardScreen.class.getSimpleName());
-        if (!ScoreboardData.isEmpty()) {
-            ScoreboardData.clear();
-        }
-        close();
     }
 
     private void createNoDataMessage() {
@@ -71,7 +73,7 @@ public class BoardScreen extends TScreen {
         int drawX = (getTpeWidth() / 2) - (textWidth / 2);
         int drawY = (getTpeHeight() / 2) - (textHeight / 2);
 
-        TCenterLabelWidget noMsgLabel = new TCenterLabelWidget(drawX, drawY, textWidth, textHeight, noDataMsg);
+        TLabelWidget noMsgLabel = new TLabelWidget(drawX, drawY, textWidth, textHeight, noDataMsg);
         noMsgLabel.setScale(TextHandler.SCALE_1o5f);
 
         addTChild(noMsgLabel);
@@ -148,7 +150,7 @@ public class BoardScreen extends TScreen {
         addTChild(boardPanelScrollBar);
     }
 
-    private void changeLabelColorAndListScore(TClickableLabelWidget label, TPanelWidget boardPanel, String objectiveName, String objectiveDisplayName) {
+    private void changeLabelColorAndListScore(TLabelWidget label, TPanelWidget boardPanel, String objectiveName, String objectiveDisplayName) {
         if (currentSelectedLabel != null && currentSelectedLabel != label) {
             MutableText oldText = currentSelectedLabel.getLabelText().copy()
                     .setStyle(currentSelectedLabel.getLabelText().getStyle().withColor(Formatting.WHITE));
@@ -171,9 +173,9 @@ public class BoardScreen extends TScreen {
         boardPanel.clearTChildren();
         int labelWid = boardPanel.getTpeWidth() / 2;
 
-        boardPanel.addTChild(new TCenterLabelWidget(0, 0, boardPanel.getTpeWidth(), LABEL_HEIGHT, Text.literal(objectiveDisplayName)));
-        boardPanel.addTChild(new TCenterLabelWidget(0, LABEL_HEIGHT, labelWid, LABEL_HEIGHT, Text.literal("名称")));
-        boardPanel.addTChild(new TCenterLabelWidget(labelWid, LABEL_HEIGHT, labelWid, LABEL_HEIGHT, Text.literal("分数")));
+        boardPanel.addTChild(new TLabelWidget(0, 0, boardPanel.getTpeWidth(), LABEL_HEIGHT, Text.literal(objectiveDisplayName)).setCentered(true));
+        boardPanel.addTChild(new TLabelWidget(0, LABEL_HEIGHT, labelWid, LABEL_HEIGHT, Text.literal("名称")).setCentered(true));
+        boardPanel.addTChild(new TLabelWidget(labelWid, LABEL_HEIGHT, labelWid, LABEL_HEIGHT, Text.literal("分数")).setCentered(true));
 
         for (ObjectiveData objectiveData : this.objectivesData) {
             if (objectiveData.objectiveName.equals(objectiveName)) {
@@ -183,17 +185,17 @@ public class BoardScreen extends TScreen {
                     int y = LABEL_HEIGHT * (i + 2);
 
                     if (i == 0) {
-                        boardPanel.addTChild(new TCenterLabelWidget(0, y, labelWid, LABEL_HEIGHT, Text.literal(playerScore.Name).styled(style -> style.withColor(0xFFD700))));
-                        boardPanel.addTChild(new TCenterLabelWidget(labelWid, y, labelWid, LABEL_HEIGHT, Text.literal(String.valueOf(playerScore.Score)).styled(style -> style.withColor(0xFFD700))));
+                        boardPanel.addTChild(new TLabelWidget(0, y, labelWid, LABEL_HEIGHT, Text.literal(playerScore.Name).styled(style -> style.withColor(0xFFD700))).setCentered(true));
+                        boardPanel.addTChild(new TLabelWidget(labelWid, y, labelWid, LABEL_HEIGHT, Text.literal(String.valueOf(playerScore.Score)).styled(style -> style.withColor(0xFFD700))).setCentered(true));
                     } else if (i == 1) {
-                        boardPanel.addTChild(new TCenterLabelWidget(0, y, labelWid, LABEL_HEIGHT, Text.literal(playerScore.Name).styled(style -> style.withColor(0xC0C0C0))));
-                        boardPanel.addTChild(new TCenterLabelWidget(labelWid, y, labelWid, LABEL_HEIGHT, Text.literal(String.valueOf(playerScore.Score)).styled(style -> style.withColor(0xC0C0C0))));
+                        boardPanel.addTChild(new TLabelWidget(0, y, labelWid, LABEL_HEIGHT, Text.literal(playerScore.Name).styled(style -> style.withColor(0xC0C0C0))).setCentered(true));
+                        boardPanel.addTChild(new TLabelWidget(labelWid, y, labelWid, LABEL_HEIGHT, Text.literal(String.valueOf(playerScore.Score)).styled(style -> style.withColor(0xC0C0C0))).setCentered(true));
                     } else if (i == 2) {
-                        boardPanel.addTChild(new TCenterLabelWidget(0, y, labelWid, LABEL_HEIGHT, Text.literal(playerScore.Name).styled(style -> style.withColor(0xB87333))));
-                        boardPanel.addTChild(new TCenterLabelWidget(labelWid, y, labelWid, LABEL_HEIGHT, Text.literal(String.valueOf(playerScore.Score)).styled(style -> style.withColor(0xB87333))));
+                        boardPanel.addTChild(new TLabelWidget(0, y, labelWid, LABEL_HEIGHT, Text.literal(playerScore.Name).styled(style -> style.withColor(0xB87333))).setCentered(true));
+                        boardPanel.addTChild(new TLabelWidget(labelWid, y, labelWid, LABEL_HEIGHT, Text.literal(String.valueOf(playerScore.Score)).styled(style -> style.withColor(0xB87333))).setCentered(true));
                     } else {
-                        boardPanel.addTChild(new TCenterLabelWidget(0, y, labelWid, LABEL_HEIGHT, Text.literal(playerScore.Name)));
-                        boardPanel.addTChild(new TCenterLabelWidget(labelWid, y, labelWid, LABEL_HEIGHT, Text.literal(String.valueOf(playerScore.Score))));
+                        boardPanel.addTChild(new TLabelWidget(0, y, labelWid, LABEL_HEIGHT, Text.literal(playerScore.Name)).setCentered(true));
+                        boardPanel.addTChild(new TLabelWidget(labelWid, y, labelWid, LABEL_HEIGHT, Text.literal(String.valueOf(playerScore.Score))).setCentered(true));
                     }
                 }
                 return;
@@ -207,9 +209,8 @@ public class BoardScreen extends TScreen {
 
             MutableText labelText = Text.literal(obj.objectiveDisplayName + "(" + obj.objectiveName + ")");
 
-            TClickableLabelWidget tLabelWidget = new TClickableLabelWidget(0, i * LABEL_HEIGHT, TextHandler.getTextWidth(labelText, TextHandler.SCALE_1f) + 4, LABEL_HEIGHT, labelText);
+            TLabelWidget tLabelWidget = new TLabelWidget(0, i * LABEL_HEIGHT, TextHandler.getTextWidth(labelText, TextHandler.SCALE_1f) + 4, LABEL_HEIGHT, labelText).setScale(TextHandler.SCALE_1f);
             tLabelWidget.setOnClick(() -> changeLabelColorAndListScore(tLabelWidget, boardPanel, obj.objectiveName, obj.objectiveDisplayName));
-            tLabelWidget.setScale(TextHandler.SCALE_1f);
 
             menuPanel.addTChild(tLabelWidget);
         }
