@@ -4,7 +4,6 @@ import dev.scoreboardpreviewer.CustomWidget.TLabelWidget;
 import dev.scoreboardpreviewer.CustomWidget.TPanelWidget;
 import dev.scoreboardpreviewer.ScoreSource.ScoreboardData;
 import dev.scoreboardpreviewer.ScoreboardPreviewer;
-import dev.scoreboardpreviewer.ScoreboardPreviewerClient;
 import dev.scoreboardpreviewer.model.ObjectiveData;
 import dev.scoreboardpreviewer.model.PlayerScore;
 import dev.scoreboardpreviewer.utils.TextHandler;
@@ -36,6 +35,7 @@ public class BoardScreen extends TScreen {
     private static final int PANEL_TOP_OFFSET = 25;
     private static final int LABEL_HEIGHT = 20;
     private List<ObjectiveData> objectivesData = ScoreboardData.getObjectives();
+    private String currentSelectedObjective = null;
     private TLabelWidget currentSelectedLabel = null;
 
     public BoardScreen(String title) {
@@ -60,7 +60,6 @@ public class BoardScreen extends TScreen {
     public void resize(MinecraftClient client, int width, int height) {
         super.resize(client, width, height);
         objectivesData = ScoreboardData.getObjectives();
-        currentSelectedLabel = null;
         layoutComponents();
     }
 
@@ -161,6 +160,7 @@ public class BoardScreen extends TScreen {
                 .setStyle(label.getLabelText().getStyle().withColor(Formatting.YELLOW));
         label.setLabelText(newText);
         currentSelectedLabel = label;
+        currentSelectedObjective = objectiveName;
 
         addAndListScore(objectiveDisplayName, boardPanel, objectiveName);
 
@@ -204,6 +204,8 @@ public class BoardScreen extends TScreen {
     }
 
     private void putObjectiveData(TPanelWidget menuPanel, TPanelWidget boardPanel) {
+        TLabelWidget selectedLabel = null;
+
         for (int i = 0; i < this.objectivesData.size(); i++) {
             ObjectiveData obj = this.objectivesData.get(i);
 
@@ -213,6 +215,26 @@ public class BoardScreen extends TScreen {
             tLabelWidget.setOnClick(() -> changeLabelColorAndListScore(tLabelWidget, boardPanel, obj.objectiveName, obj.objectiveDisplayName));
 
             menuPanel.addTChild(tLabelWidget);
+
+            if (obj.objectiveName.equals(currentSelectedObjective)) {
+                MutableText selectedText = labelText.copy()
+                        .setStyle(labelText.getStyle().withColor(Formatting.YELLOW));
+                tLabelWidget.setLabelText(selectedText);
+
+                currentSelectedLabel = tLabelWidget;
+                selectedLabel = tLabelWidget;
+
+                addAndListScore(
+                        obj.objectiveDisplayName,
+                        boardPanel,
+                        obj.objectiveName
+                );
+            }
+        }
+
+        if (selectedLabel != null) {
+            menuPanel.setScrollFlags(TPanelWidget.SCROLL_VERTICAL);
+            menuPanel.scrollToChild(selectedLabel);
         }
     }
 
